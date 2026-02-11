@@ -67,16 +67,29 @@ function App() {
     setInputMsg("");
   };
 
+// App.jsx ke andar 'startCall' function ko isse replace karo:
+
   const startCall = (room, stream, initiator) => {
     const peer = new SimplePeer({
       initiator: initiator,
       trickle: false,
       stream: stream,
+      config: {
+        iceServers: [
+          { urls: "stun:stun.l.google.com:19302" },
+          { urls: "stun:global.stun.twilio.com:3478" }
+        ]
+      }
     });
-    peer.on("signal", (data) => socket.emit("signal", { room, signal: data }));
+
+    peer.on("signal", (data) => {
+      socket.emit("signal", { room, signal: data });
+    });
+
     peer.on("stream", (remoteStream) => {
       if (partnerVideo.current) partnerVideo.current.srcObject = remoteStream;
     });
+
     connectionRef.current = peer;
   };
 
