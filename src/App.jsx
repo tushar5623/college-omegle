@@ -69,17 +69,34 @@ function App() {
 
 // App.jsx ke andar 'startCall' function ko isse replace karo:
 
-  const startCall = (room, stream, initiator) => {
+const startCall = (room, stream, initiator) => {
     const peer = new SimplePeer({
       initiator: initiator,
       trickle: false,
       stream: stream,
       config: {
         iceServers: [
+          // Google STUN
           { urls: "stun:stun.l.google.com:19302" },
-          { urls: "stun:global.stun.twilio.com:3478" }
-        ]
-      }
+          { urls: "stun:global.stun.twilio.com:3478" },
+          // OpenRelay TURN (Ye Magic Hai!) ✨
+          {
+            urls: "turn:openrelay.metered.ca:80",
+            username: "openrelayproject",
+            credential: "openrelayproject",
+          },
+          {
+            urls: "turn:openrelay.metered.ca:443",
+            username: "openrelayproject",
+            credential: "openrelayproject",
+          },
+          {
+            urls: "turn:openrelay.metered.ca:443?transport=tcp",
+            username: "openrelayproject",
+            credential: "openrelayproject",
+          },
+        ],
+      },
     });
 
     peer.on("signal", (data) => {
