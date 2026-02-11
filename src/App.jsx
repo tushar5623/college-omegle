@@ -204,8 +204,14 @@ function App() {
            
            {/* LEFT: VIDEO SECTION */}
            <div className="flex-1 relative bg-neutral-900 flex items-center justify-center">
-              <video playsInline ref={partnerVideo} autoPlay className="w-full h-full object-contain" />
-              
+{/* Line number 250 ke aas paas */}
+<video 
+  playsInline 
+  ref={partnerVideo} 
+  autoPlay 
+  muted   // <--- YE ADD KARO (Test ke liye)
+  className="w-full h-full object-contain" 
+/>              
               {/* My Video PIP */}
               <div className="absolute top-4 right-4 w-32 h-24 md:w-48 md:h-36 bg-neutral-800 rounded-lg border border-white/10 overflow-hidden shadow-2xl z-20">
                  <video playsInline muted ref={(ref) => { if(ref) ref.srcObject = stream }} autoPlay className="w-full h-full object-cover transform scale-x-[-1]" />
