@@ -70,16 +70,15 @@ function App() {
 // App.jsx ke andar 'startCall' function ko isse replace karo:
 
 const startCall = (room, stream, initiator) => {
+    // ... (Peer config same rahegi TURN server wali) ...
     const peer = new SimplePeer({
       initiator: initiator,
       trickle: false,
       stream: stream,
       config: {
         iceServers: [
-          // Google STUN
           { urls: "stun:stun.l.google.com:19302" },
           { urls: "stun:global.stun.twilio.com:3478" },
-          // OpenRelay TURN (Ye Magic Hai!) ✨
           {
             urls: "turn:openrelay.metered.ca:80",
             username: "openrelayproject",
@@ -95,21 +94,32 @@ const startCall = (room, stream, initiator) => {
             username: "openrelayproject",
             credential: "openrelayproject",
           },
-        ],
-      },
+        ]
+      }
     });
+
+    // --- YE ERROR LOGGING ADD KARO ---
+    peer.on("error", (err) => {
+      console.error("Peer Error:", err);
+      alert("Connection Error: " + err.message); // Screen pe error dikhega
+    });
+
+    peer.on("connect", () => {
+      console.log("P2P Connection Established! 🟢");
+    });
+    // ----------------------------------
 
     peer.on("signal", (data) => {
       socket.emit("signal", { room, signal: data });
     });
 
     peer.on("stream", (remoteStream) => {
+      console.log("Remote Stream Aayi! 🌊", remoteStream); // Check karo stream aa rahi hai ya nahi
       if (partnerVideo.current) partnerVideo.current.srcObject = remoteStream;
     });
 
     connectionRef.current = peer;
   };
-
   const handleStartMatching = () => {
     if (!email) return alert("Please enter college email!");
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
