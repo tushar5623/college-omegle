@@ -3,11 +3,10 @@ import react from '@vitejs/plugin-react'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import path from "path"
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react(),
-    nodePolyfills(), // --- YE JADU HAI (Fixes Simple-Peer) ---
+    nodePolyfills(), // Ye zaruri hai
   ],
   resolve: {
     alias: {
@@ -15,7 +14,6 @@ export default defineConfig({
     },
   },
   define: {
-    // Kabhi kabhi global define karna padta hai manually
-    "global": {},
+    "global": "window", // Ye line make sure karti hai ki production mein crash na ho
   },
 })
