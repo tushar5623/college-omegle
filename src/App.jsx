@@ -6,7 +6,7 @@ import { GridBackground } from "@/components/ui/grid-background";
 import { io } from "socket.io-client";
 import SimplePeer from 'simple-peer';
 
-const socket = io("http://localhost:5000");
+const socket = io("https://college-omegle-backend.onrender.com");
 
 function App() {
   const [step, setStep] = useState('landing'); 
