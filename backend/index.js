@@ -12,12 +12,13 @@ const io = new Server(server, {
 });
 
 let waitingQueue = [];
-let socketIdToRoom = {}; // Track kaun kis room mein hai
+let socketIdToRoom = {}; // Kaun kis room mein hai, track karne ke liye
 
 io.on("connection", (socket) => {
   console.log(`User Connected: ${socket.id}`);
 
   socket.on("join-room", (email) => {
+    // Agar koi wait kar raha hai, toh usse jodo
     if (waitingQueue.length > 0) {
       const partnerSocket = waitingQueue.pop();
       if (partnerSocket.id !== socket.id) {
@@ -26,13 +27,13 @@ io.on("connection", (socket) => {
         socket.join(roomID);
         partnerSocket.join(roomID);
         
-        // Save Room ID
         socketIdToRoom[socket.id] = roomID;
         socketIdToRoom[partnerSocket.id] = roomID;
 
         io.to(roomID).emit("match-found", { roomID, partnerID: partnerSocket.id });
       }
     } else {
+      // Koi nahi hai, toh queue mein wait karo
       waitingQueue.push(socket);
     }
   });
@@ -44,32 +45,32 @@ io.on("connection", (socket) => {
   socket.on("signal", (data) => {
     socket.to(data.room).emit("signal", { signal: data.signal });
   });
+
+  // --- NEW: SKIP PARTNER LOGIC ---
   socket.on("skip-partner", () => {
-    // 1. Current Room ID dhundo
     const roomID = socketIdToRoom[socket.id];
+    
+    // 1. Agar room tha, toh partner ko batao ki main bhaag gaya
     if (roomID) {
-      // 2. Partner ko batao ki main chala gaya
       socket.to(roomID).emit("partner-left");
-      
-      // 3. Room se niklo
       socket.leave(roomID);
       delete socketIdToRoom[socket.id];
     }
-});
-  // --- DISCONNECT HANDLING (Call Cut Fix) ---
-  socket.on("disconnect", () => {
-    // 1. Queue se hatao agar wait kar raha tha
-    waitingQueue = waitingQueue.filter((s) => s.id !== socket.id);
     
-    // 2. Agar Room mein tha, toh Partner ko batao
+    // 2. Queue se bhi hata do agar wahan tha
+    waitingQueue = waitingQueue.filter(s => s.id !== socket.id);
+  });
+
+  // --- DISCONNECT HANDLING ---
+  socket.on("disconnect", () => {
     const roomID = socketIdToRoom[socket.id];
     if (roomID) {
-      socket.to(roomID).emit("partner-left"); // Notification bhejo
-      delete socketIdToRoom[socket.id];       // Cleanup
+      socket.to(roomID).emit("partner-left");
+      delete socketIdToRoom[socket.id];
     }
+    waitingQueue = waitingQueue.filter((s) => s.id !== socket.id);
   });
 });
 
-server.listen(5000, () => {
-  console.log("SERVER RUNNING... 🚀");
-});
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
