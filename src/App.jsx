@@ -96,11 +96,18 @@ function App() {
     connectionRef.current = peer;
   };
 
-  const handleStartMatching = () => {
+const handleStartMatching = () => {
     if (!email) return alert("Please enter college email!");
     
-    // --- YAHAN CAMERA PERMISSION MANGEGA ---
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+    // --- UPDATED AUDIO SETTINGS ---
+    navigator.mediaDevices.getUserMedia({ 
+      video: true, 
+      audio: {
+        echoCancellation: true, // Gunjna band karega
+        noiseSuppression: true, // Background shor kam karega
+        autoGainControl: false, // Mic ka volume stable rakhega
+      } 
+    })
       .then((currentStream) => {
         setStream(currentStream);
         window.localStream = currentStream; 
@@ -192,9 +199,16 @@ function App() {
               )}
               
               {/* My Video (PIP) */}
-              <div className="absolute top-4 right-4 w-32 h-24 bg-neutral-800 rounded-lg overflow-hidden border border-white/20 shadow-lg">
-                 <video playsInline muted ref={(ref) => { if(ref) ref.srcObject = stream }} autoPlay className="w-full h-full object-cover transform scale-x-[-1]" />
-              </div>
+            {/* My Video (PIP) - Isme 'muted' hona zaroori hai */}
+<div className="absolute top-4 right-4 ...">
+    <video 
+        playsInline 
+        muted          // <--- YE BAHUT ZAROORI HAI
+        ref={(ref) => { if(ref) ref.srcObject = stream }} 
+        autoPlay 
+        className="..." 
+    />
+</div>
 
               {/* NEXT BUTTON */}
               <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2">
