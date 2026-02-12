@@ -70,11 +70,17 @@ function App() {
     socket.on("receive-message", (msg) => {
       setMessages((prev) => [...prev, { sender: 'stranger', text: msg }]);
     });
+    socket.on("partner-left", () => {
+      addLog("🔴 Partner Left the chat!");
+      alert("Partner disconnect ho gaya! Naya match dhund rahe hain...");
+      window.location.reload(); // Page reload karke naya match dhundo
+    });
 
     return () => {
       socket.off("match-found");
       socket.off("signal");
       socket.off("receive-message");
+      socket.off("partner-left"); // <--- Cleanup
     };
   }, []);
 

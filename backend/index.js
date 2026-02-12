@@ -1,4 +1,3 @@
-// backend/index.js
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -13,6 +12,7 @@ const io = new Server(server, {
 });
 
 let waitingQueue = [];
+let socketIdToRoom = {}; // Track kaun kis room mein hai
 
 io.on("connection", (socket) => {
   console.log(`User Connected: ${socket.id}`);
@@ -22,8 +22,14 @@ io.on("connection", (socket) => {
       const partnerSocket = waitingQueue.pop();
       if (partnerSocket.id !== socket.id) {
         const roomID = `${partnerSocket.id}-${socket.id}`;
+        
         socket.join(roomID);
         partnerSocket.join(roomID);
+        
+        // Save Room ID
+        socketIdToRoom[socket.id] = roomID;
+        socketIdToRoom[partnerSocket.id] = roomID;
+
         io.to(roomID).emit("match-found", { roomID, partnerID: partnerSocket.id });
       }
     } else {
@@ -31,9 +37,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // --- NEW: Chat Message Logic ---
   socket.on("send-message", (data) => {
-    // Message ko room mein dusre bande ko bhejo
     socket.to(data.room).emit("receive-message", data.message);
   });
 
@@ -41,11 +45,20 @@ io.on("connection", (socket) => {
     socket.to(data.room).emit("signal", { signal: data.signal });
   });
 
+  // --- DISCONNECT HANDLING (Call Cut Fix) ---
   socket.on("disconnect", () => {
+    // 1. Queue se hatao agar wait kar raha tha
     waitingQueue = waitingQueue.filter((s) => s.id !== socket.id);
+    
+    // 2. Agar Room mein tha, toh Partner ko batao
+    const roomID = socketIdToRoom[socket.id];
+    if (roomID) {
+      socket.to(roomID).emit("partner-left"); // Notification bhejo
+      delete socketIdToRoom[socket.id];       // Cleanup
+    }
   });
 });
 
 server.listen(5000, () => {
-  console.log("SERVER RUNNING... Chat Enabled 💬");
+  console.log("SERVER RUNNING... 🚀");
 });
