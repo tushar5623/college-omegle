@@ -44,7 +44,18 @@ io.on("connection", (socket) => {
   socket.on("signal", (data) => {
     socket.to(data.room).emit("signal", { signal: data.signal });
   });
-
+  socket.on("skip-partner", () => {
+    // 1. Current Room ID dhundo
+    const roomID = socketIdToRoom[socket.id];
+    if (roomID) {
+      // 2. Partner ko batao ki main chala gaya
+      socket.to(roomID).emit("partner-left");
+      
+      // 3. Room se niklo
+      socket.leave(roomID);
+      delete socketIdToRoom[socket.id];
+    }
+});
   // --- DISCONNECT HANDLING (Call Cut Fix) ---
   socket.on("disconnect", () => {
     // 1. Queue se hatao agar wait kar raha tha
