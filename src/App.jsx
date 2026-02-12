@@ -178,8 +178,25 @@ function App() {
                   {partnerActive ? (
                       <>
                         {/* Video Element */}
-                        <video playsInline ref={partnerVideo} autoPlay className="w-full h-full object-contain relative z-10" />
-                        
+{/* PARTNER VIDEO TAG FIX */}
+<video 
+    playsInline 
+    autoPlay 
+    ref={(video) => {
+        // Jab video element load ho, tab ref set karo aur play karo
+        if (video) {
+            partnerVideo.current = video;
+            if (video.srcObject) {
+                video.play().catch(e => console.error("Autoplay Error:", e));
+            }
+        }
+    }}
+    onLoadedMetadata={(e) => {
+        // Video data aate hi zabardasti play karo
+        e.target.play().catch(e => console.error("Force Play Error:", e));
+    }}
+    className="w-full h-full object-contain relative z-10" 
+/>                        
                         {/* Waiting Text (Video ke peeche) */}
                         <div className="absolute inset-0 flex flex-col items-center justify-center z-0">
                             <Loader2 className="w-12 h-12 text-neutral-500 animate-spin mb-4" />
